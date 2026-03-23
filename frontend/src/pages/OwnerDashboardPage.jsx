@@ -236,9 +236,6 @@ export default function OwnerDashboardPage() {
               <div className="space-y-10">
                 <section>
                   <h2 className="text-lg font-bold text-gray-900">Public sentiment</h2>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Derived from star ratings (4–5 positive, 3 neutral, 1–2 needs attention).
-                  </p>
                   <div className="grid sm:grid-cols-3 gap-4 mt-5">
                     <div className="rounded-2xl border border-emerald-100 bg-emerald-50/80 p-5">
                       <p className="text-xs font-bold uppercase text-emerald-800 tracking-wide">Positive</p>
@@ -547,10 +544,6 @@ export default function OwnerDashboardPage() {
           </div>
         </div>
 
-        <p className="text-center text-xs text-gray-500 mt-8">
-          Tip: leave this tab open or click Refresh after diners submit reviews — data loads live from your
-          API.
-        </p>
       </div>
     </div>
   );

@@ -1,16 +1,67 @@
-# React + Vite
+# Frontend (React + Vite)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is the UI for the Yelp_Demo project.
 
-Currently, two official plugins are available:
+It includes:
+- login/signup pages
+- explore/search restaurants
+- restaurant details + reviews
+- favorites, profile, preferences
+- owner pages
+- AI chat widget
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Tech used
+- React
+- Vite
+- React Router
+- Tailwind CSS
+- Axios
 
-## React Compiler
+## Folder
+- `src/` -> all pages, components, services
+- `public/` -> static files
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Setup
 
-## Expanding the ESLint configuration
+```bash
+cd frontend
+npm install
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Run in dev mode
+
+```bash
+npm run dev
+```
+
+Default URL is usually:
+- `http://localhost:5173`
+
+## Environment variable
+
+Create `.env` (optional) if backend is not running on localhost:
+
+```env
+VITE_API_URL=http://localhost:8000
+```
+
+If deployed, set this to your live backend URL.
+
+## Build for production
+
+```bash
+npm run build
+```
+
+Preview build locally:
+
+```bash
+npm run preview
+```
+
+## Common issue
+
+If API calls fail in browser:
+- check `VITE_API_URL`
+- check backend CORS config
+- check backend server is running
