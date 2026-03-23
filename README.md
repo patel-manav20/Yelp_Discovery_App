@@ -1,181 +1,203 @@
-# Restaurant Lab — Yelp-Style Discovery App
+# Yelp_Demo - End-to-End Restaurant Discovery Platform
 
-**Restaurant Lab** is an educational full-stack project inspired by **directory-style restaurant discovery** (layout and patterns similar to Yelp, but **not affiliated** with Yelp). It includes search, reviews, favorites, owner tools, optional **Yelp Fusion** import, and an **AI dining assistant**.
+`Yelp_Demo` is a full-stack restaurant discovery app inspired by Yelp-style workflows.  
+It includes search, reviews, favorites, owner tools, and a conversational AI assistant for personalized restaurant recommendations.
 
-| Layer | Stack |
-|--------|--------|
-| **Frontend** | React (Vite), React Router, Tailwind CSS, Axios |
-| **Backend** | FastAPI, SQLAlchemy 2, Alembic, PyJWT, bcrypt |
-| **Database** | MySQL 8+ |
-| **AI** | Google Gemini (optional) over HTTP; structured filters + reply text |
-| **External data** | Yelp Fusion API (optional) for import + supplemental search |
+## Tech Stack
 
----
+| Layer | Technology |
+|---|---|
+| Frontend | React (Vite), React Router, Tailwind CSS, Axios |
+| Backend | FastAPI, SQLAlchemy, Alembic, JWT auth |
+| Database | MySQL |
+| AI/NLP | Gemini + LangChain output parser + deterministic heuristics |
+| External APIs | Yelp Fusion API, Tavily Search API |
 
-## Repository layout
+## Project Structure
 
-```
-Lab1/
-├── README.md                 ← You are here (project overview & lab guide)
-├── docs/
-│   └── API.md                ← Full HTTP endpoint reference
-├── backend/                  ← FastAPI app (see backend/README.md for Alembic detail)
-│   ├── .env.example
-│   ├── app/
-│   └── alembic/
-└── frontend/                 ← React SPA
-    ├── .env.example
-    └── src/
+```text
+Yelp_Demo/
+├── frontend/                 # React application
+├── backend/                  # FastAPI application
+├── docs/API.md               # Endpoint reference
+└── README.md                 # This file
 ```
 
----
+## System Architecture
+
+```mermaid
+flowchart LR
+    U[User] --> F[Frontend React App]
+    F -->|REST API calls| B[FastAPI Backend]
+    B --> DB[(MySQL)]
+    B --> Y[Yelp Fusion API]
+    B --> T[Tavily Search API]
+    B --> G[Gemini API]
+    B -->|JSON response| F
+```
+
+## End-to-End Request Flow
+
+### 1) User Interaction
+- User opens web app and logs in.
+- User searches restaurants or chats with AI assistant.
+
+### 2) Frontend Layer
+- Frontend sends API requests to backend (`VITE_API_URL`).
+- Chat widget sends:
+  - `message`
+  - `session_id` (if existing)
+  - `conversation_history`
+
+### 3) Backend Layer
+- Validates JWT and request payload.
+- Loads user preferences (city, cuisines, price, dietary, ambiance).
+- Extracts filters from natural language.
+- Queries local MySQL data first.
+- Optionally supplements results with Yelp API and Tavily context.
+- Ranks candidates and generates a conversational answer.
+
+### 4) Response Layer
+- Backend returns structured JSON:
+  - `reply`
+  - `applied_filters`
+  - `recommendations[]`
+  - `session_id`
+- Frontend renders chat message + recommendation cards.
+
+## AI Assistant Architecture and Flow
+
+```mermaid
+flowchart TD
+    A[User Message] --> B[POST /ai-assistant/chat]
+    B --> C[Load/Create Chat Session]
+    C --> D[Load User Preferences]
+    D --> E[Extract Filters from Message]
+    E --> F{Intent Type}
+    F -->|Open/Hours Query| G[Open-Now Handler]
+    F -->|Ratings/Reviews Query| H[Ratings Handler]
+    F -->|General Discovery| I[Recommendation Pipeline]
+    I --> J[Local DB Candidate Search]
+    J --> K{Enough Results?}
+    K -->|No| L[Yelp Supplemental Search]
+    K -->|Yes| M[Rank Candidates]
+    L --> M
+    M --> N[Build Reasons per Recommendation]
+    N --> O[Generate Conversational Reply]
+    O --> P[Persist Chat Messages]
+    G --> P
+    H --> P
+    P --> Q[Return Structured JSON]
+```
+
+## Core Features
+
+### Diner Features
+- Explore restaurants (local + Yelp supplemental).
+- View details, photos, ratings, reviews.
+- Write reviews and save favorites.
+- Edit profile and preferences.
+
+### Owner Features
+- Owner authentication.
+- Add/edit listings.
+- Owner dashboard and listing activity.
+
+### AI Assistant Features
+- Multi-turn conversational chat.
+- Personalized recommendations based on saved preferences.
+- Reasoned recommendation cards (specific match reasons).
+- Handles specialized intents:
+  - open/closed queries
+  - ratings/review queries
+- Uses Tavily for web context when local data is limited.
+
+## Setup and Run Locally
 
 ## Prerequisites
+- Python 3.11+
+- Node.js 18+
+- MySQL 8+
 
-- **Python 3.11+**
-- **Node.js 18+** (for Vite)
-- **MySQL 8+** and a GUI or CLI client
-- (Optional) **Yelp Fusion** API key — [Yelp Developers](https://www.yelp.com/developers/documentation/v3/authentication)
-- (Optional) **Google AI** API key — [Google AI Studio](https://aistudio.google.com/) (Gemini)
-
----
-
-## Project setup (first time)
-
-### 1. Database
-
-Create an empty schema (UTF-8):
-
-```sql
-CREATE DATABASE restaurant_lab CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-```
-
-### 2. Backend
+## Backend Setup
 
 ```bash
 cd backend
 cp .env.example .env
-```
-
-Edit **`.env`**:
-
-| Variable | Purpose |
-|----------|---------|
-| `DATABASE_URL` | `mysql+pymysql://USER:PASSWORD@HOST:3306/restaurant_lab` |
-| `SECRET_KEY` | Long random string (`openssl rand -hex 32`) |
-| `CORS_ORIGINS` | Frontend origins, e.g. `http://localhost:5173` |
-| `YELP_API_KEY` | Optional — import + AI supplement |
-| `GEMINI_API_KEY` | Optional — AI chat quality |
-
-Install and migrate:
-
-```bash
 python3 -m venv .venv
-source .venv/bin/activate          # Windows: .venv\Scripts\activate
+source .venv/bin/activate
 pip install -r requirements.txt
 alembic upgrade head
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-**Data:** create users and restaurants via the web app, or import from Yelp with `YELP_API_KEY` using **`POST /restaurants/import-from-yelp`** or **`GET /restaurants/yelp/{yelp_id}?persist=true`** (see [docs/API.md](./docs/API.md) and `/docs`). Optional: `python -m app.db.inspect_db` from `backend` to check row counts.
-
-### 3. Frontend
+## Frontend Setup
 
 ```bash
 cd frontend
 npm install
-cp .env.example .env               # optional; defaults work for local API
-```
-
-If the API is not on `http://localhost:8000`, set `VITE_API_URL` in `frontend/.env`.
-
----
-
-## Local development — run steps
-
-You need **two terminals**: MySQL running, then backend + frontend.
-
-### Terminal A — API
-
-```bash
-cd backend
-source .venv/bin/activate
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-```
-
-- Swagger UI: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)  
-- Health: [http://127.0.0.1:8000/health](http://127.0.0.1:8000/health)
-
-### Terminal B — Web app
-
-```bash
-cd frontend
 npm run dev
 ```
 
-Open the URL Vite prints (usually **http://localhost:5173**).
+## Deployment (Recommended)
 
-**Tip:** Run `uvicorn`, `alembic`, and `python -m app.db...` from the **`backend`** folder so `.env` and `alembic.ini` resolve correctly. More migration notes: `backend/README.md`.
+### Frontend
+- Deploy `frontend/` to **Vercel**.
+- Set env var:
+  - `VITE_API_URL=https://<your-backend-url>`
 
----
+### Backend
+- Deploy `backend/` to **Render/Railway/Fly.io**.
+- Required env vars:
+  - `DATABASE_URL`
+  - `SECRET_KEY`
+  - `CORS_ORIGINS`
+- Optional (recommended):
+  - `YELP_API_KEY`
+  - `GEMINI_API_KEY`
+  - `TAVILY_API_KEY`
 
-## API endpoint summary
+## UI Screenshots
 
-A concise table of all routes lives in **[docs/API.md](./docs/API.md)**. The live OpenAPI spec is always at `/docs` when the server is running.
+Add your UI screenshots under this section so reviewers can quickly understand the product.
 
----
+### 1. Login Page
+`![Login Page](./screenshots/login.png)`
 
-## Accounts
+### 2. Signup Page
+`![Signup Page](./screenshots/signup.png)`
 
-Register through **Sign up** / **Owner sign up** in the UI. There is no bundled seed script.
+### 3. Home / Dashboard
+`![Home Dashboard](./screenshots/home-dashboard.png)`
 
-> **Submission tip:** Do not commit real API keys or personal passwords. Use `.env` (gitignored) and document only `.env.example`.
+### 4. Explore Restaurants
+`![Explore Restaurants](./screenshots/explore-restaurants.png)`
 
----
+### 5. Restaurant Details
+`![Restaurant Details](./screenshots/restaurant-details.png)`
 
-## Sample test flow (lab demo checklist)
+### 6. Write Review
+`![Write Review](./screenshots/write-review.png)`
 
-Use this ~5–10 minute script to show end-to-end behavior:
+### 7. User Profile
+`![User Profile](./screenshots/profile.png)`
 
-1. **Health & docs** — Open `/health` and `/docs`; confirm DB connected (check backend log on startup).
-2. **Browse** — Without logging in, open **Explore**, search `San Jose` or `pizza`, open a restaurant **detail** page.
-3. **Sign up** — Create a diner account (and optionally an owner account).
-4. **Profile & preferences** — Update **Profile**; set **Preferences** (city, cuisines, price).
-5. **Social proof** — **Write a review** on a restaurant; confirm it appears in the list.
-6. **Save** — Toggle **Save** / view **Saved** (favorites).
-7. **Owner path** — Log in as an **owner**; open **For business** / owner dashboard.
-8. **AI assistant** — Open the **chat bubble**; send “Dinner tonight” or “Vegan options”; show reply + recommendation cards (requires **`GEMINI_API_KEY`** for best results; without it, behavior may degrade to fallbacks).
-9. **Optional Yelp** — With **`YELP_API_KEY`**, use Swagger `POST /restaurants/import-from-yelp` with a real Yelp business id; refresh Explore.
+### 8. Favorites / Saved
+`![Favorites](./screenshots/favorites.png)`
 
----
+### 9. AI Chatbot
+`![AI Chatbot](./screenshots/ai-chatbot.png)`
 
-## AI chatbot architecture (short)
+### 10. Owner Dashboard
+`![Owner Dashboard](./screenshots/owner-dashboard.png)`
 
-1. **Session** — Each chat belongs to a `ChatSession` in MySQL; `POST /ai-assistant/chat` accepts `session_id` or starts a new session.
-2. **Filter extraction** — The user message (plus recent history) is sent to **Gemini** with a JSON-only prompt to produce structured fields (cuisine, price, location, keywords, etc.). If Gemini is unavailable or returns empty fields, a small **heuristic** extracts keywords.
-3. **Preferences merge** — Extracted filters are merged with the user’s saved **dining preferences** (default city, cuisines, price).
-4. **Candidate sources** — The app queries **local MySQL** restaurants using those filters. If there are fewer than five local matches, it may call **Yelp Fusion search** to add supplemental candidates (when `YELP_API_KEY` is set).
-5. **Ranking** — Candidates are scored/ranked (message relevance, ratings, prefs).
-6. **Reply** — Gemini generates a short natural-language answer using preference summary, applied filters, and the top recommendations. A **fallback** message is used if no model text is returned.
-7. **Persistence** — User and assistant messages are stored; the frontend can list sessions and reload history.
+### 11. Owner My Listings
+`![Owner Listings](./screenshots/owner-listings.png)`
 
----
+### 12. Owner Activity
+`![Owner Activity](./screenshots/owner-activity.png)`
 
-## Yelp Fusion integration (short)
-
-- **Import (authoritative row):** `POST /restaurants/import-from-yelp` calls Yelp’s **Business Details** endpoint (`GET https://api.yelp.com/v3/businesses/{id}`), normalizes the JSON, and **inserts or updates** a row in MySQL (photos, rating, categories, address, etc.). Requires `YELP_API_KEY`.
-- **AI supplement:** When local search returns few results, the assistant may call Yelp’s **Business Search** API to suggest additional places. Those hits may appear as recommendations **without** a local numeric `id` until imported.
-- **Attribution:** Yelp data is subject to [Yelp’s API terms](https://www.yelp.com/developers/api_terms); this lab uses the API for learning purposes only.
-
----
-
-## Production / submission notes
-
-- Rotate `SECRET_KEY` and use strong MySQL credentials.
-- Never commit `.env` files; only **`.env.example`** templates.
-- The UI states clearly that the project is **educational** and not affiliated with Yelp.
-
----
-
-## License / academic use
-
-Use and adapt for coursework per your instructor’s policy. Keep third-party API terms (Yelp, Google) in mind for any public deployment.
+## Notes
+- Keep `.env` out of git (use `.env.example` only).
+- Rotate API keys before public deployment.
+- This project is educational and inspired by Yelp-style UX.
