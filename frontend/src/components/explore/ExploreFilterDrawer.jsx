@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { cuisineOptions, defaultExploreFilters } from "../../constants/exploreFilters";
+import { cuisineOptions } from "../../constants/exploreFilters";
 
 const sectionTitle = "text-sm font-bold text-gray-900";
 const divider = "border-b border-gray-200";
@@ -37,7 +37,7 @@ export default function ExploreFilterDrawer({ open, draft, setDraft, onApply, on
     } catch {
       return "";
     }
-  }, [open]);
+  }, []);
 
   const set = (patch) => setDraft({ ...draft, ...patch });
 

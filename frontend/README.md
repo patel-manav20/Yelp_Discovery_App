@@ -58,10 +58,3 @@ Preview build locally:
 ```bash
 npm run preview
 ```
-
-## Common issue
-
-If API calls fail in browser:
-- check `VITE_API_URL`
-- check backend CORS config
-- check backend server is running

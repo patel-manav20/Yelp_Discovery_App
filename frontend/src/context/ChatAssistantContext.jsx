@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- provider + hook in one module */
 import { createContext, useContext, useMemo, useRef } from "react";
 import ChatWidget from "../components/chat/ChatWidget";
 

@@ -80,7 +80,7 @@ function NumberedMarker({ point, active, onSelect }) {
         iconSize: [28, 28],
         iconAnchor: [14, 14],
       }),
-    [point.label, active]
+    [active]
   );
 
   return (

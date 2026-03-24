@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useChatAssistant } from "../context/ChatAssistantContext";
@@ -25,10 +25,6 @@ import {
 
 const PAGE_LIMIT = 20;
 
-function safeExploreRowDomId(id) {
-  return String(id).replace(/[^a-zA-Z0-9_-]/g, "_");
-}
-
 export default function ExplorePage() {
   const { isAuthenticated } = useAuth();
   const chat = useChatAssistant();
@@ -45,7 +41,6 @@ export default function ExplorePage() {
   const [searchAsMapMoves, setSearchAsMapMoves] = useState(false);
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
   const [draftFilters, setDraftFilters] = useState(defaultExploreFilters);
-  const [dataSource, setDataSource] = useState("yelp"); // "yelp" | "local"
   const [yelpFallbackReason, setYelpFallbackReason] = useState("");
 
   const browseTitle = useMemo(() => {
@@ -165,14 +160,12 @@ export default function ExplorePage() {
       setTotal(localTotal + yelpTotal);
 
       if (yelpSettled.status === "fulfilled") {
-        setDataSource("yelp");
         setYelpFallbackReason("");
         setError("");
         return;
       }
 
       if (localItems.length) {
-        setDataSource("local");
         setYelpFallbackReason(
           getApiErrorMessage(
             yelpSettled.reason,
@@ -182,7 +175,6 @@ export default function ExplorePage() {
         setError("");
       } else {
         setYelpFallbackReason("");
-        setDataSource("local");
         setError(
           getApiErrorMessage(
             yelpSettled.reason,
@@ -197,7 +189,6 @@ export default function ExplorePage() {
       setError(getApiErrorMessage(err, "Could not load restaurants"));
       setItems([]);
       setTotal(0);
-      setDataSource("local");
     } finally {
       setLoading(false);
     }

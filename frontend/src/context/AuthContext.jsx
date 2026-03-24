@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- context module exports provider + context */
 import { createContext, useCallback, useEffect, useState } from "react";
 import { getToken, setToken, clearToken } from "../utils/storage";
 import { api } from "../services/api";

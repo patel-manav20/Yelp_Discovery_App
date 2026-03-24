@@ -1,126 +1,155 @@
-# Yelp_Demo - End-to-End Restaurant Discovery Platform
+# Yelp_Demo - End-to-End Restaurant Discovery App
 
-`Yelp_Demo` is a full-stack restaurant discovery app inspired by Yelp-style workflows.  
-It includes search, reviews, favorites, owner tools, and a conversational AI assistant for personalized restaurant recommendations.
+This is a full-stack student project inspired by Yelp-style restaurant discovery.
 
-## Tech Stack
+It supports:
+- user login/signup
+- explore and search restaurants
+- write reviews and save favorites
+- owner dashboard and listing management
+- AI assistant for restaurant recommendations
 
-| Layer | Technology |
+---
+
+## 1) What this project uses
+
+| Layer | Tech |
 |---|---|
 | Frontend | React (Vite), React Router, Tailwind CSS, Axios |
-| Backend | FastAPI, SQLAlchemy, Alembic, JWT auth |
+| Backend | FastAPI, SQLAlchemy, Alembic, JWT |
 | Database | MySQL |
-| AI/NLP | Gemini + LangChain output parser + deterministic heuristics |
-| External APIs | Yelp Fusion API, Tavily Search API |
+| AI | Gemini + LangChain parser + custom ranking logic |
+| External APIs | Yelp Fusion, Tavily |
 
-## Project Structure
+---
+
+## 2) Project folder structure
 
 ```text
 Yelp_Demo/
-├── frontend/                 # React application
-├── backend/                  # FastAPI application
-├── docs/API.md               # Endpoint reference
-└── README.md                 # This file
+├── frontend/         # React app
+├── backend/          # FastAPI app
+├── docs/API.md       # API endpoint docs
+└── README.md         # This file
 ```
 
-## System Architecture
+---
+
+## 3) Whole project architecture diagram
 
 ```mermaid
 flowchart LR
-    U[User] --> F[Frontend React App]
-    F -->|REST API calls| B[FastAPI Backend]
-    B --> DB[(MySQL)]
-    B --> Y[Yelp Fusion API]
-    B --> T[Tavily Search API]
-    B --> G[Gemini API]
-    B -->|JSON response| F
+    U[User] --> FE[Frontend React App]
+    FE --> API[Axios Service Layer]
+    API --> BE[FastAPI Backend]
+
+    BE --> DB[(MySQL)]
+    BE --> YELP[Yelp Fusion API]
+    BE --> TAV[Tavily API]
+    BE --> GEM[Gemini API]
+
+    DB --> BE
+    YELP --> BE
+    TAV --> BE
+    GEM --> BE
+
+    BE --> FE
+    FE --> U
 ```
 
-## End-to-End Request Flow
+---
 
-### 1) User Interaction
-- User opens web app and logs in.
-- User searches restaurants or chats with AI assistant.
-
-### 2) Frontend Layer
-- Frontend sends API requests to backend (`VITE_API_URL`).
-- Chat widget sends:
-  - `message`
-  - `session_id` (if existing)
-  - `conversation_history`
-
-### 3) Backend Layer
-- Validates JWT and request payload.
-- Loads user preferences (city, cuisines, price, dietary, ambiance).
-- Extracts filters from natural language.
-- Queries local MySQL data first.
-- Optionally supplements results with Yelp API and Tavily context.
-- Ranks candidates and generates a conversational answer.
-
-### 4) Response Layer
-- Backend returns structured JSON:
-  - `reply`
-  - `applied_filters`
-  - `recommendations[]`
-  - `session_id`
-- Frontend renders chat message + recommendation cards.
-
-## AI Assistant Architecture and Flow
+## 4) End-to-end workflow (simple)
 
 ```mermaid
 flowchart TD
-    A[User Message] --> B[POST /ai-assistant/chat]
-    B --> C[Load/Create Chat Session]
-    C --> D[Load User Preferences]
-    D --> E[Extract Filters from Message]
-    E --> F{Intent Type}
-    F -->|Open/Hours Query| G[Open-Now Handler]
-    F -->|Ratings/Reviews Query| H[Ratings Handler]
-    F -->|General Discovery| I[Recommendation Pipeline]
-    I --> J[Local DB Candidate Search]
-    J --> K{Enough Results?}
-    K -->|No| L[Yelp Supplemental Search]
-    K -->|Yes| M[Rank Candidates]
-    L --> M
-    M --> N[Build Reasons per Recommendation]
-    N --> O[Generate Conversational Reply]
-    O --> P[Persist Chat Messages]
-    G --> P
-    H --> P
-    P --> Q[Return Structured JSON]
+    A[User action on UI] --> B[Frontend sends API request]
+    B --> C[FastAPI route receives request]
+    C --> D[Service logic runs]
+    D --> E[Read/write MySQL data]
+    D --> F[Optional call: Yelp / Tavily / Gemini]
+    E --> G[Build final response JSON]
+    F --> G
+    G --> H[Frontend renders result]
 ```
 
-## Core Features
+### Step-by-step in simple words
+1. User clicks/searches/sends chat message in frontend.
+2. Frontend calls backend API endpoint.
+3. Backend validates user and reads DB data.
+4. Backend may call external APIs (Yelp/Tavily/Gemini) if needed.
+5. Backend returns JSON response.
+6. Frontend shows cards, text, ratings, profile info, etc.
 
-### Diner Features
-- Explore restaurants (local + Yelp supplemental).
-- View details, photos, ratings, reviews.
-- Write reviews and save favorites.
-- Edit profile and preferences.
+---
 
-### Owner Features
-- Owner authentication.
-- Add/edit listings.
-- Owner dashboard and listing activity.
+## 5) AI Assistant workflow diagram
 
-### AI Assistant Features
-- Multi-turn conversational chat.
-- Personalized recommendations based on saved preferences.
-- Reasoned recommendation cards (specific match reasons).
-- Handles specialized intents:
-  - open/closed queries
-  - ratings/review queries
-- Uses Tavily for web context when local data is limited.
+```mermaid
+flowchart TD
+    A[User message from ChatWidget] --> B[POST /ai-assistant/chat]
+    B --> C[Load session + user preferences]
+    C --> D[Build context from conversation_history]
+    D --> E{Intent check}
 
-## Setup and Run Locally
+    E -->|Open/Hours question| F[Open-status handler]
+    F --> F1{Local hours available?}
+    F1 -->|Yes| F2[Compute open/closed from DB hours]
+    F1 -->|No| F3[Use Tavily context]
+    F2 --> Z[Save chat messages + return reply]
+    F3 --> Z
 
-## Prerequisites
-- Python 3.11+
-- Node.js 18+
-- MySQL 8+
+    E -->|Ratings question| G[Ratings handler]
+    G --> G1[Fetch local reviews + rating summary]
+    G1 --> Z
 
-## Backend Setup
+    E -->|General recommendation| H[Extract filters with LangChain + Gemini]
+    H --> I[Merge with saved user preferences]
+    I --> J[Query local restaurants]
+    J --> K{Enough local matches?}
+    K -->|No| L[Add Yelp supplemental candidates]
+    K -->|Yes| M[Use local candidates]
+    L --> N[Rank all candidates]
+    M --> N
+    N --> O[Build reason for each recommendation]
+    O --> P[Generate conversational response]
+    P --> Z
+```
 
+### AI answer sources (important)
+- **First preference:** local MySQL data
+- **If needed:** Yelp supplemental data
+- **For extra context:** Tavily web snippets
+- **For natural language response:** Gemini
+
+---
+
+## 6) Main app modules
+
+### User side
+- auth (login/signup)
+- restaurant explore and details
+- write reviews
+- favorites
+- profile + preferences
+
+### Owner side
+- owner login/signup
+- owner dashboard
+- add/edit listings
+- owner activity
+
+### AI side
+- multi-turn chat sessions
+- preference-aware recommendations
+- recommendation reasons on cards
+- intent-specific handling (open/hours, ratings)
+
+---
+
+## 7) Local setup
+
+### Backend
 ```bash
 cd backend
 cp .env.example .env
@@ -131,73 +160,65 @@ alembic upgrade head
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-## Frontend Setup
-
+### Frontend
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-## Deployment (Recommended)
+---
 
-### Frontend
-- Deploy `frontend/` to **Vercel**.
-- Set env var:
-  - `VITE_API_URL=https://<your-backend-url>`
+## 8) UI screenshots section (headings)
 
-### Backend
-- Deploy `backend/` to **Render/Railway/Fly.io**.
-- Required env vars:
-  - `DATABASE_URL`
-  - `SECRET_KEY`
-  - `CORS_ORIGINS`
-- Optional (recommended):
-  - `YELP_API_KEY`
-  - `GEMINI_API_KEY`
-  - `TAVILY_API_KEY`
+Add your screenshots in `./screenshots/` and replace file names below.
 
-## UI Screenshots
+### Login UI
+![Login UI](./screenshots/login.png)
 
-Add your UI screenshots under this section so reviewers can quickly understand the product.
+### Signup UI
+![Signup UI](./screenshots/signup.png)
 
-### 1. Login Page
-`![Login Page](./screenshots/login.png)`
+### Home Dashboard UI
+![Home Dashboard UI](./screenshots/home-dashboard.png)
 
-### 2. Signup Page
-`![Signup Page](./screenshots/signup.png)`
+### Explore Restaurants UI
+![Explore Restaurants UI](./screenshots/explore-restaurants.png)
 
-### 3. Home / Dashboard
-`![Home Dashboard](./screenshots/home-dashboard.png)`
+### Restaurant Details UI
+![Restaurant Details UI](./screenshots/restaurant-details.png)
 
-### 4. Explore Restaurants
-`![Explore Restaurants](./screenshots/explore-restaurants.png)`
+### Write Review UI
+![Write Review UI](./screenshots/write-review.png)
 
-### 5. Restaurant Details
-`![Restaurant Details](./screenshots/restaurant-details.png)`
+### Profile UI
+![Profile UI](./screenshots/profile.png)
 
-### 6. Write Review
-`![Write Review](./screenshots/write-review.png)`
+### Favorites UI
+![Favorites UI](./screenshots/favorites.png)
 
-### 7. User Profile
-`![User Profile](./screenshots/profile.png)`
+### AI Assistant Chat UI
+![AI Assistant Chat UI](./screenshots/ai-chatbot.png)
 
-### 8. Favorites / Saved
-`![Favorites](./screenshots/favorites.png)`
+### Owner Dashboard UI
+![Owner Dashboard UI](./screenshots/owner-dashboard.png)
 
-### 9. AI Chatbot
-`![AI Chatbot](./screenshots/ai-chatbot.png)`
+### Owner Listings UI
+![Owner Listings UI](./screenshots/owner-listings.png)
 
-### 10. Owner Dashboard
-`![Owner Dashboard](./screenshots/owner-dashboard.png)`
+### Owner Activity UI
+![Owner Activity UI](./screenshots/owner-activity.png)
 
-### 11. Owner My Listings
-`![Owner Listings](./screenshots/owner-listings.png)`
+---
 
-### 12. Owner Activity
-`![Owner Activity](./screenshots/owner-activity.png)`
+## 9) My Experience Building This Project
 
-## Notes
-- Keep `.env` out of git (use `.env.example` only).
-- Rotate API keys before public deployment.
-- This project is educational and inspired by Yelp-style UX.
+This project taught me how a complete end-to-end product works, not just one file or one page.
+
+I learned how frontend and backend are connected in real life. In the frontend, I worked on React pages, routing, forms, and reusable components. In the backend, I worked with FastAPI routes, service logic, database models, and migrations. It helped me understand how user actions in UI become API requests, then database operations, and finally responses back to the UI.
+
+The AI assistant part was the most challenging and most interesting. I learned how to combine user preferences, conversation history, local DB search, ranking logic, and external APIs (Gemini, Yelp, Tavily) to generate better recommendations. I also learned that good AI output depends a lot on clean data and clear logic, not only on prompts.
+
+I also improved my debugging skills during this project. Many times, one small issue in filtering, routing, or data shape caused wrong results in chat or explore pages. Fixing those issues helped me understand full-stack flow deeply.
+
+Overall, this project gave me strong practical experience in building, debugging, and improving a real-world data-driven web application.

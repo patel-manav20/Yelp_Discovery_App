@@ -33,7 +33,7 @@ const SNIPPETS = [
     `Cozy atmosphere and great for a date night. Noise level was comfortable. Parking was easier than expected near ${city}.`,
   (city) =>
     `Ordered takeout and everything arrived hot. Flavors were balanced and the packaging was solid. Recommended if you're around ${city}.`,
-  (city) =>
+  () =>
     `Friendly staff, fair prices, and consistent quality. Good option for groups—our party of six had no issues getting seated.`,
 ];
 

@@ -138,6 +138,7 @@ async function loadSuggestionRestaurants(isAuthenticated) {
         }
       }
     } catch {
+      // Optional history: ignore if unavailable
     }
   }
 
@@ -155,6 +156,7 @@ async function loadSuggestionRestaurants(isAuthenticated) {
       }
     }
   } catch {
+    // Fallback search: ignore if API fails
   }
 
   return merged;

@@ -216,7 +216,7 @@ const CITY_CONTENT = {
   },
 };
 
-function defaultCityBlock(city) {
+function defaultCityBlock() {
   return {
     top: [
       "Restaurants",
@@ -264,7 +264,7 @@ function defaultCityBlock(city) {
 }
 
 function getBlock(city) {
-  return CITY_CONTENT[city] ?? defaultCityBlock(city);
+  return CITY_CONTENT[city] ?? defaultCityBlock();
 }
 
 function LinkGrid({ items, city }) {
