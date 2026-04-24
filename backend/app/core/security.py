@@ -1,56 +1,32 @@
-"""Password hashing (bcrypt) and JWT helpers."""
-
-from datetime import datetime, timedelta, timezone
-from typing import Any
-
+"""Password hashing and JWT utilities."""
 import bcrypt
 import jwt
-
+from datetime import datetime, timedelta
 from app.core.config import settings
 
+def hash_password(password: str) -> str:
+    """Hash password using bcrypt."""
+    salt = bcrypt.gensalt(rounds=12)
+    return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
 
-def hash_password(plain_password: str) -> str:
-    """Hash a plain text password for storage in the database."""
-    hashed = bcrypt.hashpw(plain_password.encode("utf-8"), bcrypt.gensalt())
-    return hashed.decode("utf-8")
+def verify_password(password: str, password_hash: str) -> bool:
+    """Verify password against hash."""
+    return bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8'))
 
+def create_access_token(user_id: str, expires_delta: timedelta = None) -> str:
+    """Create JWT access token."""
+    if expires_delta is None:
+        expires_delta = timedelta(hours=settings.access_token_expire_minutes // 60)
+    
+    expire = datetime.utcnow() + expires_delta
+    payload = {"user_id": user_id, "exp": expire}
+    
+    return jwt.encode(payload, settings.secret_key, algorithm=settings.jwt_algorithm)
 
-def verify_password(plain_password: str, password_hash: str) -> bool:
-    """Return True if plain_password matches the stored bcrypt hash."""
-    return bcrypt.checkpw(
-        plain_password.encode("utf-8"),
-        password_hash.encode("utf-8"),
-    )
-
-
-def create_access_token(
-    subject: str | int,
-    *,
-    extra_claims: dict[str, Any] | None = None,
-    expires_minutes: int | None = None,
-) -> str:
-    """
-    Create a signed JWT. `subject` is stored as claim "sub" (usually user id).
-    Optional extra_claims (e.g. {"role": "user"}) are merged into the payload.
-    """
-    minutes = expires_minutes if expires_minutes is not None else settings.access_token_expire_minutes
-    expire = datetime.now(timezone.utc) + timedelta(minutes=minutes)
-    payload: dict[str, Any] = {"sub": str(subject), "exp": expire}
-    if extra_claims:
-        payload.update(extra_claims)
-    return jwt.encode(
-        payload,
-        settings.secret_key,
-        algorithm=settings.jwt_algorithm,
-    )
-
-
-def decode_access_token(token: str) -> dict[str, Any]:
-    """
-    Decode and validate a JWT. Raises jwt exceptions if invalid or expired.
-    """
-    return jwt.decode(
-        token,
-        settings.secret_key,
-        algorithms=[settings.jwt_algorithm],
-    )
+def decode_access_token(token: str) -> dict:
+    """Decode and verify JWT token."""
+    try:
+        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.jwt_algorithm])
+        return payload
+    except jwt.InvalidTokenError:
+        return None

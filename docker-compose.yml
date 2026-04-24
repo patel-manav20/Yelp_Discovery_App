@@ -1,0 +1,125 @@
+version: '3.9'
+
+services:
+  # ==================== DATABASES ====================
+  mongodb:
+    image: mongo:7.0
+    container_name: yelp-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-password}
+      MONGO_INITDB_DATABASE: yelp
+    volumes:
+      - mongodb_data:/data/db
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    networks:
+      - yelp-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==================== MESSAGE QUEUE ====================
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: yelp-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - yelp-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: yelp-kafka
+    depends_on:
+      zookeeper:
+        condition: service_started
+    ports:
+      - "29092:29092"
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    networks:
+      - yelp-network
+
+  # ==================== BACKEND API ====================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: yelp-backend
+    depends_on:
+      - mongodb
+      - kafka
+    ports:
+      - "8000:8000"
+    environment:
+      # Database
+      DATABASE_URL: mongodb://admin:password@mongodb:27017/yelp?authSource=admin
+      MONGODB_DATABASE: yelp
+      
+      # Kafka
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      
+      # API
+      API_TITLE: "Restaurant Lab API"
+      API_VERSION: "0.2.0"
+      CORS_ORIGINS: "http://localhost:3000,http://localhost:5173,http://frontend"
+      
+      # Security
+      SECRET_KEY: your-secret-key-change-in-production
+      JWT_EXPIRATION_HOURS: 24
+      BCRYPT_ROUNDS: 12
+      
+      # Services
+      YELP_API_KEY: ""
+      TAVILY_API_KEY: ""
+    volumes:
+      - ./backend:/app
+      - ./uploads:/app/uploads
+    networks:
+      - yelp-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ==================== FRONTEND ====================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: yelp-frontend
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+      - "3000:3000"
+    networks:
+      - yelp-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  yelp-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+    driver: local

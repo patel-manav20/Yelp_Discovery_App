@@ -1,23 +1,29 @@
-"""SQLAlchemy engine and session factory (MySQL via PyMySQL driver)."""
-
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
+"""MongoDB connection setup."""
+from pymongo import MongoClient
 from app.core.config import settings
 
-engine = create_engine(
-    settings.database_url,
-    pool_pre_ping=True,
-    echo=settings.debug,
-)
+# MongoDB client and database
+_client = None
+_db = None
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+def get_mongo_client():
+    """Get MongoDB client."""
+    global _client
+    if _client is None:
+        _client = MongoClient(settings.database_url)
+    return _client
 
+def get_database():
+    """Get MongoDB database."""
+    global _db
+    if _db is None:
+        client = get_mongo_client()
+        _db = client['yelp']
+    return _db
 
 def get_db():
-    """FastAPI dependency: yields one request-scoped session, then closes it."""
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+    """FastAPI dependency: returns MongoDB database."""
+    return get_database()
+
+# For backward compatibility
+db = get_database()
