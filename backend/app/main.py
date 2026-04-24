@@ -24,11 +24,10 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from sqlalchemy import text
 
 from app.core.config import settings
 from app.core.exceptions import AppHTTPException, app_http_exception_handler
-from app.db.database import engine
+from app.db.database import get_mongo_client
 from app.routes import (
     auth_routes,
     chat_routes,
@@ -46,13 +45,13 @@ _log = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Verify DB connectivity once at startup (non-fatal if DB is down)."""
+    """Verify MongoDB connectivity once at startup (non-fatal if DB is down)."""
     try:
-        with engine.connect() as conn:
-            conn.execute(text("SELECT 1"))
-        _log.info("Database connection OK")
+        client = get_mongo_client()
+        client.admin.command('ping')
+        _log.info("MongoDB connection OK")
     except Exception as exc:  # noqa: BLE001 — log any connection failure
-        _log.warning("Database not reachable at startup (API will still run): %s", exc)
+        _log.warning("MongoDB not reachable at startup (API will still run): %s", exc)
     yield
 
 
