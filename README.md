@@ -497,7 +497,11 @@ kubectl get pods -n yelp-app
 <img width="1698" height="1305" alt="image" src="https://github.com/user-attachments/assets/d0eeae29-1d22-4f88-a557-5c93f68a4bdd" />
 
 
+
+
 <img width="1711" height="1299" alt="image" src="https://github.com/user-attachments/assets/416d8a64-471a-44db-b41d-024cd1822396" />
+
+
 
 
 <img width="749" height="386" alt="image" src="https://github.com/user-attachments/assets/b953820a-3ec6-4cf6-a916-a13a5a26f4c1" />
