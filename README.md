@@ -466,7 +466,8 @@ kubectl get pods -n yelp-app
 
 
 ### Login UI
-<img width="388" height="311" alt="image" src="https://github.com/user-attachments/assets/0f14920e-f106-41ae-8cfc-217bd4c20dcb" />
+<img width="1711" height="1299" alt="image" src="https://github.com/user-attachments/assets/d84261a8-2796-4f01-9218-b4487dbb3fac" />
+
 
 
 ### Signup UI
