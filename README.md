@@ -462,7 +462,7 @@ kubectl get pods -n yelp-app
 
 ---
 
-# Section 14: UI screenshots section
+# Section 14: UI screenshots 
 
 
 ### Login UI
@@ -543,9 +543,8 @@ kubectl get pods -n yelp-app
 
 ---
 
-# Section 15: Keep existing Work Distribution section (Section 10 from old README) as-is
+# Section 15: Work Distribution
 
-## 10) Work Distribution
 
 This lab was completed by Manav and Ritika.
 
@@ -554,6 +553,6 @@ This lab was completed by Manav and Ritika.
 
 ---
 
-# Section 16: Experience section — Docker, Kubernetes, Kafka, MongoDB migration, Redux, distributed systems concepts.
+# Section 16: Experience — Docker, Kubernetes, Kafka, MongoDB migration, Redux, distributed systems concepts.
 
 Lab 2 gave us practical experience in building and operating a real distributed system instead of only writing app logic. We learned how Docker standardizes environments across machines, and how Kubernetes on AWS EKS handles service deployment, networking, and runtime orchestration. Kafka taught us how event-driven write workflows decouple APIs from heavy processing and improve responsiveness under load. Migrating from MySQL to MongoDB helped us model flexible restaurant and user data more naturally, while Redux made frontend state transitions predictable and easier to debug. Overall, this lab connected core distributed systems concepts (asynchronous messaging, service separation, scalability, and resilience) to hands-on implementation.
