@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-worker-service
+  namespace: yelp-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-worker-service
+  template:
+    metadata:
+      labels:
+        app: user-worker-service
+    spec:
+      containers:
+        - name: user-worker-service
+          image: 904183418399.dkr.ecr.us-east-1.amazonaws.com/lab1-user-worker-service:v1.0.0
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: MONGODB_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-config
+                  key: MONGODB_URL
+            - name: DB_NAME
+              value: yelp_discovery
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-config
+                  key: KAFKA_BOOTSTRAP_SERVERS
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: SECRET_KEY
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 100m
+            limits:
+              memory: 256Mi
+              cpu: 250m

@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: yelp-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: 904183418399.dkr.ecr.us-east-1.amazonaws.com/lab1-frontend:v1.0.3
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80

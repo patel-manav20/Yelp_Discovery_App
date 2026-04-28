@@ -1,0 +1,358 @@
+services:
+  mongodb:
+    image: mongo:7
+    container_name: yelp-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - yelp-net
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: yelp-zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    healthcheck:
+      test: ["CMD-SHELL", "echo srvr | nc -w 2 localhost 2181 | grep Zookeeper || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - yelp-net
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: yelp-kafka
+    ports:
+      - "9092:9092"
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list >/dev/null 2>&1 || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+    networks:
+      - yelp-net
+
+  kafka-init:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: yelp-kafka-init
+    depends_on:
+      kafka:
+        condition: service_healthy
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        kafka-topics --create --if-not-exists --topic restaurant-events --bootstrap-server kafka:9092 --partitions 1 --replication-factor 1
+        kafka-topics --create --if-not-exists --topic user-history-events --bootstrap-server kafka:9092 --partitions 1 --replication-factor 1
+        kafka-topics --create --if-not-exists --topic chat-events --bootstrap-server kafka:9092 --partitions 1 --replication-factor 1
+        kafka-topics --create --if-not-exists --topic review.created --bootstrap-server kafka:9092 --partitions 1 --replication-factor 1
+        kafka-topics --create --if-not-exists --topic review.updated --bootstrap-server kafka:9092 --partitions 1 --replication-factor 1
+        kafka-topics --create --if-not-exists --topic review.deleted --bootstrap-server kafka:9092 --partitions 1 --replication-factor 1
+        kafka-topics --create --if-not-exists --topic restaurant.created --bootstrap-server kafka:9092 --partitions 1 --replication-factor 1
+        kafka-topics --create --if-not-exists --topic restaurant.updated --bootstrap-server kafka:9092 --partitions 1 --replication-factor 1
+        kafka-topics --create --if-not-exists --topic restaurant.claimed --bootstrap-server kafka:9092 --partitions 1 --replication-factor 1
+        kafka-topics --create --if-not-exists --topic user.created --bootstrap-server kafka:9092 --partitions 1 --replication-factor 1
+        kafka-topics --create --if-not-exists --topic user.updated --bootstrap-server kafka:9092 --partitions 1 --replication-factor 1
+        kafka-topics --create --if-not-exists --topic booking.status --bootstrap-server kafka:9092 --partitions 1 --replication-factor 1
+        echo "Kafka topics initialized."
+    networks:
+      - yelp-net
+
+  backend:
+    build:
+      context: ./backend
+    container_name: yelp-backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
+    environment:
+      MONGODB_URL: ${MONGODB_URL:-mongodb://mongodb:27017/yelp_discovery}
+      DB_NAME: ${DB_NAME:-yelp_discovery}
+      SECRET_KEY: ${SECRET_KEY:-change-me-to-a-long-random-secret}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
+      YELP_API_KEY: ${YELP_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.0-flash}
+      TAVILY_API_KEY: ${TAVILY_API_KEY:-}
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
+    volumes:
+      - uploads_data:/app/uploads
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=3)\" || exit 1",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 25s
+    networks:
+      - yelp-net
+
+  user-reviewer-service:
+    build:
+      context: ./backend
+      dockerfile: services/user-reviewer/Dockerfile
+    container_name: yelp-user-reviewer
+    ports:
+      - "8001:8001"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      MONGODB_URL: ${MONGODB_URL:-mongodb://mongodb:27017/yelp_discovery}
+      DB_NAME: ${DB_NAME:-yelp_discovery}
+      SECRET_KEY: ${SECRET_KEY:-change-me-to-a-long-random-secret}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
+      YELP_API_KEY: ${YELP_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.0-flash}
+      TAVILY_API_KEY: ${TAVILY_API_KEY:-}
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health/ready', timeout=3)\" || exit 1",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 25s
+    networks:
+      - yelp-net
+
+  restaurant-owner-service:
+    build:
+      context: ./backend
+      dockerfile: services/restaurant-owner/Dockerfile
+    container_name: yelp-restaurant-owner
+    ports:
+      - "8002:8002"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      MONGODB_URL: ${MONGODB_URL:-mongodb://mongodb:27017/yelp_discovery}
+      DB_NAME: ${DB_NAME:-yelp_discovery}
+      SECRET_KEY: ${SECRET_KEY:-change-me-to-a-long-random-secret}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
+      YELP_API_KEY: ${YELP_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.0-flash}
+      TAVILY_API_KEY: ${TAVILY_API_KEY:-}
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8002/health/ready', timeout=3)\" || exit 1",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 25s
+    networks:
+      - yelp-net
+
+  restaurant-service:
+    build:
+      context: ./backend
+      dockerfile: services/restaurant/Dockerfile
+    container_name: yelp-restaurant-service
+    ports:
+      - "8003:8003"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      MONGODB_URL: ${MONGODB_URL:-mongodb://mongodb:27017/yelp_discovery}
+      DB_NAME: ${DB_NAME:-yelp_discovery}
+      SECRET_KEY: ${SECRET_KEY:-change-me-to-a-long-random-secret}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
+      YELP_API_KEY: ${YELP_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.0-flash}
+      TAVILY_API_KEY: ${TAVILY_API_KEY:-}
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8003/health/ready', timeout=3)\" || exit 1",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 25s
+    networks:
+      - yelp-net
+
+  review-service:
+    build:
+      context: ./backend
+      dockerfile: services/review/Dockerfile
+    container_name: yelp-review-service
+    ports:
+      - "8004:8004"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      MONGODB_URL: ${MONGODB_URL:-mongodb://mongodb:27017/yelp_discovery}
+      DB_NAME: ${DB_NAME:-yelp_discovery}
+      SECRET_KEY: ${SECRET_KEY:-change-me-to-a-long-random-secret}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
+      YELP_API_KEY: ${YELP_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.0-flash}
+      TAVILY_API_KEY: ${TAVILY_API_KEY:-}
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8004/health/ready', timeout=3)\" || exit 1",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 25s
+    networks:
+      - yelp-net
+
+  review-worker-service:
+    build:
+      context: ./backend
+      dockerfile: services/review-worker/Dockerfile
+    container_name: yelp-review-worker
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
+    environment:
+      MONGODB_URL: ${MONGODB_URL:-mongodb://mongodb:27017/yelp_discovery}
+      DB_NAME: ${DB_NAME:-yelp_discovery}
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
+      SECRET_KEY: ${SECRET_KEY:-change-me-to-a-long-random-secret}
+    networks:
+      - yelp-net
+
+  restaurant-worker-service:
+    build:
+      context: ./backend
+      dockerfile: services/restaurant-worker/Dockerfile
+    container_name: yelp-restaurant-worker
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
+    environment:
+      MONGODB_URL: ${MONGODB_URL:-mongodb://mongodb:27017/yelp_discovery}
+      DB_NAME: ${DB_NAME:-yelp_discovery}
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
+      SECRET_KEY: ${SECRET_KEY:-change-me-to-a-long-random-secret}
+    networks:
+      - yelp-net
+
+  user-worker-service:
+    build:
+      context: ./backend
+      dockerfile: services/user-worker/Dockerfile
+    container_name: yelp-user-worker
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
+    environment:
+      MONGODB_URL: ${MONGODB_URL:-mongodb://mongodb:27017/yelp_discovery}
+      DB_NAME: ${DB_NAME:-yelp_discovery}
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
+      SECRET_KEY: ${SECRET_KEY:-change-me-to-a-long-random-secret}
+    networks:
+      - yelp-net
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: /api
+    container_name: yelp-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1/ >/dev/null 2>&1 || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+    networks:
+      - yelp-net
+
+volumes:
+  mongodb_data:
+  uploads_data:
+
+networks:
+  yelp-net:
+    driver: bridge

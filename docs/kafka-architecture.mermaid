@@ -1,0 +1,87 @@
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "fontFamily": "ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif",
+    "fontSize": "15px",
+    "lineColor": "#546E7A",
+    "primaryBorderColor": "#37474F"
+  }
+}}%%
+flowchart LR
+    %% Left → middle → workers (horizontal) → downstream
+    subgraph P["<b>API producers</b>"]
+        direction TB
+        UAPI["<b>User API</b><br/><span style=font-size:12px>/auth signup · /users/me update</span>"]
+        RAPI["<b>Restaurant API</b><br/><span style=font-size:12px>/restaurants create · update · claim</span>"]
+        RVAPI["<b>Review API</b><br/><span style=font-size:12px>/reviews create · update · delete</span>"]
+    end
+
+    subgraph K["<b>Kafka topics</b>"]
+        direction TB
+        subgraph KU["User"]
+            T1["user.created"]
+            T2["user.updated"]
+        end
+        subgraph KR["Restaurant"]
+            T3["restaurant.created"]
+            T4["restaurant.updated"]
+            T5["restaurant.claimed"]
+        end
+        subgraph KRV["Review"]
+            T6["review.created"]
+            T7["review.updated"]
+            T8["review.deleted"]
+        end
+    end
+
+    subgraph W["<b>Worker consumers</b>"]
+        direction LR
+        UW["<b>User Worker</b>"]
+        RW["<b>Restaurant Worker</b>"]
+        RVW["<b>Review Worker</b>"]
+    end
+
+    subgraph BS["<b>Downstream</b>"]
+        direction TB
+        T9["<b>booking.status</b><br/><span style=font-size:11px>fan-in from all workers</span>"]
+    end
+
+    UAPI --> T1
+    UAPI --> T2
+    RAPI --> T3
+    RAPI --> T4
+    RAPI --> T5
+    RVAPI --> T6
+    RVAPI --> T7
+    RVAPI --> T8
+
+    T1 --> UW
+    T2 --> UW
+    T3 --> RW
+    T4 --> RW
+    T5 --> RW
+    T6 --> RVW
+    T7 --> RVW
+    T8 --> RVW
+
+    UW --> T9
+    RW --> T9
+    RVW --> T9
+
+    style P fill:#E8EEF7,stroke:#1565C0,stroke-width:2px
+    style K fill:#FFF9E6,stroke:#F57F17,stroke-width:2px
+    style W fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px
+    style BS fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px
+    style KU fill:#FFFDE7,stroke:#FFB300,stroke-width:1px
+    style KR fill:#FFF8E1,stroke:#FF8F00,stroke-width:1px
+    style KRV fill:#FFF3E0,stroke:#EF6C00,stroke-width:1px
+
+    classDef producer fill:#E3F2FD,stroke:#1565C0,stroke-width:2px,color:#0D47A1
+    classDef topic fill:#FFF8E1,stroke:#F9A825,stroke-width:1.5px,color:#BF360C
+    classDef topicAccent fill:#FFECB3,stroke:#FF8F00,stroke-width:2px,color:#E65100
+    classDef worker fill:#C8E6C9,stroke:#2E7D32,stroke-width:2px,color:#1B5E20
+
+    class UAPI,RAPI,RVAPI producer
+    class T1,T2,T3,T4,T5,T6,T7,T8 topic
+    class T9 topicAccent
+    class UW,RW,RVW worker
