@@ -496,13 +496,11 @@ kubectl get pods -n yelp-app
 ### Write Review UI
 <img width="1698" height="1305" alt="image" src="https://github.com/user-attachments/assets/d0eeae29-1d22-4f88-a557-5c93f68a4bdd" />
 
-
-
+###
 
 <img width="1711" height="1299" alt="image" src="https://github.com/user-attachments/assets/416d8a64-471a-44db-b41d-024cd1822396" />
 
-
-
+###
 
 <img width="749" height="386" alt="image" src="https://github.com/user-attachments/assets/b953820a-3ec6-4cf6-a916-a13a5a26f4c1" />
 
@@ -520,6 +518,7 @@ kubectl get pods -n yelp-app
 ### AI Assistant Chat UI
 <img width="595" height="661" alt="image" src="https://github.com/user-attachments/assets/006c1e74-6f06-4e86-a29d-f29832bb3c73" />
 
+###
 
 <img width="589" height="658" alt="image" src="https://github.com/user-attachments/assets/6a60ba5a-3acf-402b-afd6-5aef7386b416" />
 
@@ -527,6 +526,7 @@ kubectl get pods -n yelp-app
 ### Owner Dashboard UI
 <img width="1671" height="1306" alt="image" src="https://github.com/user-attachments/assets/9664f397-1ffb-4a50-852a-afd238821188" />
 
+###
 
 <img width="1321" height="1289" alt="image" src="https://github.com/user-attachments/assets/c719e7f8-a9e6-41d4-ba0c-92e05d50fce6" />
 
