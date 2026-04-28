@@ -1,12 +1,10 @@
-# Section 1: Project Title & Description
-
 ## Yelp Discovery App — Distributed Restaurant Discovery Platform
 
 Yelp Discovery App is a full-stack platform for diners and restaurant owners to discover restaurants, write and manage reviews, save favorites, and get AI-assisted recommendations through a conversational interface. It is designed for users who want fast local discovery and owners who need operational visibility into listing activity. What makes this Lab 2 build special is the combination of AI-powered recommendations (Gemini + Tavily + Yelp context), event-driven write processing through Kafka, and containerized microservices deployed with Docker and Kubernetes.
 
 ---
 
-# Section 2: Tech Stack Table
+# Section 1: Tech Stack Table
 
 | Layer | Technology |
 | --- | --- |
@@ -22,7 +20,7 @@ Yelp Discovery App is a full-stack platform for diners and restaurant owners to 
 
 ---
 
-# Section 3: Project Structure
+# Section 2: Project Structure
 
 ```text
 Yelp_Discovery_App/
@@ -87,7 +85,7 @@ Yelp_Discovery_App/
 
 ---
 
-# Section 4: System Architecture Diagram
+# Section 3: System Architecture Diagram
 
 ```mermaid
 flowchart LR
@@ -166,7 +164,7 @@ flowchart LR
 
 ---
 
-# Section 5: Kafka Event-Driven Architecture Diagram
+# Section 4: Kafka Event-Driven Architecture Diagram
 
 ```mermaid
 flowchart LR
@@ -220,7 +218,7 @@ flowchart LR
 
 ---
 
-# Section 6: MongoDB Schema Design
+# Section 5: MongoDB Schema Design
 
 ```mermaid
 erDiagram
@@ -257,7 +255,7 @@ Collections and key fields:
 
 ---
 
-# Section 7: Redux State Management Diagram
+# Section 6: Redux State Management Diagram
 
 ```mermaid
 flowchart TB
@@ -281,7 +279,7 @@ flowchart TB
 
 ---
 
-# Section 8: AI Assistant Workflow Diagram
+# Section 7: AI Assistant Workflow Diagram
 
 ```mermaid
 flowchart TD
@@ -309,7 +307,7 @@ flowchart TD
 
 ---
 
-# Section 9: Docker & Kubernetes Deployment Diagram
+# Section 8: Docker & Kubernetes Deployment Diagram
 
 ```mermaid
 flowchart LR
@@ -338,7 +336,7 @@ flowchart LR
 
 ---
 
-# Section 10: End-to-End Request Flow Diagram
+# Section 9: End-to-End Request Flow Diagram
 
 ```mermaid
 sequenceDiagram
@@ -367,7 +365,7 @@ sequenceDiagram
 
 ---
 
-# Section 11: API Endpoints Table
+# Section 10: API Endpoints Table
 
 | Service | Method | Endpoint | Data Path |
 | --- | --- | --- | --- |
@@ -405,11 +403,9 @@ sequenceDiagram
 
 ---
 
-# Section 12: JMeter Performance Testing
+# Section 11: JMeter Performance Testing
 
 We load tested critical APIs using Apache JMeter: authentication (`POST /auth/login`), restaurant retrieval (`GET /restaurants`), and review submission (`POST /reviews`) through the Kafka async flow. Tests were executed at concurrency levels 100, 200, 300, 400, and 500 users. Metrics collected include average response time, throughput (requests/second), and error rate (%). This provides clear visibility into system behavior as load increases and where bottlenecks begin (CPU, MongoDB reads, consumer lag, etc.).
-
-![JMeter Graph Placeholder](./docs/jmeter-performance-placeholder.png)
 
 ```bash
 jmeter -n -t jmeter/yelp-load-test.jmx -l results.csv -e -o report/
@@ -417,7 +413,7 @@ jmeter -n -t jmeter/yelp-load-test.jmx -l results.csv -e -o report/
 
 ---
 
-# Section 13: Local Setup Instructions
+# Section 12: Local Setup Instructions
 
 ```bash
 git clone <repo>
@@ -451,7 +447,7 @@ npm run dev
 
 ---
 
-# Section 14: Kubernetes Deployment Instructions
+# Section 13: Kubernetes Deployment Instructions
 
 ```bash
 cd k8s
@@ -466,51 +462,77 @@ kubectl get pods -n yelp-app
 
 ---
 
-# Section 15: Keep existing UI Screenshots section (Section 8 from old README) as-is
+# Section 14: UI screenshots section
 
-## 9) UI screenshots section (headings)
-
-Add your screenshots in `./screenshots/` and replace file names below.
 
 ### Login UI
-![Login UI](./screenshots/login.png)
+<img width="388" height="311" alt="image" src="https://github.com/user-attachments/assets/0f14920e-f106-41ae-8cfc-217bd4c20dcb" />
+
 
 ### Signup UI
-![Signup UI](./screenshots/signup.png)
+<img width="468" height="198" alt="image" src="https://github.com/user-attachments/assets/a186b670-47c5-459b-8398-caea5fcf52dc" />
+
 
 ### Home Dashboard UI
-![Home Dashboard UI](./screenshots/home-dashboard.png)
+<img width="394" height="321" alt="image" src="https://github.com/user-attachments/assets/fb8d60ce-ae15-48b6-b07e-e3c2ea627c94" />
+
 
 ### Explore Restaurants UI
-![Explore Restaurants UI](./screenshots/explore-restaurants.png)
+<img width="468" height="366" alt="image" src="https://github.com/user-attachments/assets/68f0fb01-91e2-4afe-9998-dc815a879456" />
+
+### Explore Home Service UI
+<img width="468" height="378" alt="image" src="https://github.com/user-attachments/assets/2de1127e-72fd-46f6-9860-af56862af1a4" />
+
 
 ### Restaurant Details UI
-![Restaurant Details UI](./screenshots/restaurant-details.png)
+<img width="468" height="377" alt="image" src="https://github.com/user-attachments/assets/8cd2c5e8-71d5-4afa-a894-4e23e54d9c8e" />
+
 
 ### Write Review UI
-![Write Review UI](./screenshots/write-review.png)
+<img width="468" height="367" alt="image" src="https://github.com/user-attachments/assets/c1abf67c-ccff-44b1-8148-7fdfc2d606b9" />
+
+<img width="468" height="508" alt="image" src="https://github.com/user-attachments/assets/9549f019-8f8e-430f-9aff-5b8d3e4272e0" />
+
+
+<img width="396" height="217" alt="image" src="https://github.com/user-attachments/assets/99827a1f-c339-4946-a92d-19ac7b0c370a" />
+
 
 ### Profile UI
-![Profile UI](./screenshots/profile.png)
+<img width="468" height="579" alt="image" src="https://github.com/user-attachments/assets/697a04d7-f483-41cc-beb5-46e8bbe51872" />
+
 
 ### Favorites UI
-![Favorites UI](./screenshots/favorites.png)
+<img width="468" height="135" alt="image" src="https://github.com/user-attachments/assets/548d7d2f-cadc-4cbb-9556-2d8f84fb777a" />
+
 
 ### AI Assistant Chat UI
-![AI Assistant Chat UI](./screenshots/ai-chatbot.png)
+<img width="231" height="256" alt="image" src="https://github.com/user-attachments/assets/057031fb-0b6a-4cad-9261-cdc71b5c9f72" />
+
+<img width="251" height="285" alt="image" src="https://github.com/user-attachments/assets/d0014839-3c29-482a-aaf2-97ab74da82c6" />
+
+<img width="269" height="310" alt="image" src="https://github.com/user-attachments/assets/7a3df826-b1e6-46f3-8f63-5c91da223365" />
+
 
 ### Owner Dashboard UI
-![Owner Dashboard UI](./screenshots/owner-dashboard.png)
+<img width="486" height="449" alt="image" src="https://github.com/user-attachments/assets/b558baf4-b287-487c-85cc-a30e849045ac" />
+
+<img width="468" height="584" alt="image" src="https://github.com/user-attachments/assets/be008fb3-93a0-4109-a00a-c07ffa583c2e" />
+
 
 ### Owner Listings UI
-![Owner Listings UI](./screenshots/owner-listings.png)
+<img width="403" height="317" alt="image" src="https://github.com/user-attachments/assets/1f93aa5e-94ca-498d-8700-0fce811c6284" />
+
+<img width="468" height="605" alt="image" src="https://github.com/user-attachments/assets/3148c4d8-1994-40df-866a-f2ab01ffd76c" />
+
+
 
 ### Owner Activity UI
-![Owner Activity UI](./screenshots/owner-activity.png)
+<img width="352" height="364" alt="image" src="https://github.com/user-attachments/assets/cfd14271-0d5f-4415-9b0e-6808aaf896b2" />
+
 
 ---
 
-# Section 16: Keep existing Work Distribution section (Section 10 from old README) as-is
+# Section 15: Keep existing Work Distribution section (Section 10 from old README) as-is
 
 ## 10) Work Distribution
 
@@ -521,6 +543,6 @@ This lab was completed by Manav and Ritika.
 
 ---
 
-# Section 17: Experience section — update to mention Lab 2 learnings: Docker, Kubernetes, Kafka, MongoDB migration, Redux, distributed systems concepts.
+# Section 16: Experience section — update to mention Lab 2 learnings: Docker, Kubernetes, Kafka, MongoDB migration, Redux, distributed systems concepts.
 
 Lab 2 gave us practical experience in building and operating a real distributed system instead of only writing app logic. We learned how Docker standardizes environments across machines, and how Kubernetes on AWS EKS handles service deployment, networking, and runtime orchestration. Kafka taught us how event-driven write workflows decouple APIs from heavy processing and improve responsiveness under load. Migrating from MySQL to MongoDB helped us model flexible restaurant and user data more naturally, while Redux made frontend state transitions predictable and easier to debug. Overall, this lab connected core distributed systems concepts (asynchronous messaging, service separation, scalability, and resilience) to hands-on implementation.
