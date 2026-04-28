@@ -471,64 +471,70 @@ kubectl get pods -n yelp-app
 
 
 ### Signup UI
-<img width="468" height="198" alt="image" src="https://github.com/user-attachments/assets/a186b670-47c5-459b-8398-caea5fcf52dc" />
+<img width="1711" height="807" alt="image" src="https://github.com/user-attachments/assets/cb740bdd-f29e-49d0-a3ad-e627b997cb58" />
+
 
 
 ### Home Dashboard UI
-<img width="394" height="321" alt="image" src="https://github.com/user-attachments/assets/fb8d60ce-ae15-48b6-b07e-e3c2ea627c94" />
+<img width="1715" height="1299" alt="image" src="https://github.com/user-attachments/assets/f682c6eb-f737-4fda-b269-4888700d5f30" />
+
 
 
 ### Explore Restaurants UI
-<img width="468" height="366" alt="image" src="https://github.com/user-attachments/assets/68f0fb01-91e2-4afe-9998-dc815a879456" />
+<img width="1698" height="1298" alt="image" src="https://github.com/user-attachments/assets/c22162d5-dc2b-4b0c-a532-7b61a1ff6417" />
+
 
 ### Explore Home Service UI
-<img width="468" height="378" alt="image" src="https://github.com/user-attachments/assets/2de1127e-72fd-46f6-9860-af56862af1a4" />
+<img width="1708" height="1305" alt="image" src="https://github.com/user-attachments/assets/8f8aab73-9ed2-46ff-869a-151a23b5c3cf" />
+
 
 
 ### Restaurant Details UI
-<img width="468" height="377" alt="image" src="https://github.com/user-attachments/assets/8cd2c5e8-71d5-4afa-a894-4e23e54d9c8e" />
+<img width="1707" height="1306" alt="image" src="https://github.com/user-attachments/assets/4057530d-ef4d-46fb-81e9-1f456bbb573b" />
 
 
 ### Write Review UI
-<img width="468" height="367" alt="image" src="https://github.com/user-attachments/assets/c1abf67c-ccff-44b1-8148-7fdfc2d606b9" />
-
-<img width="468" height="508" alt="image" src="https://github.com/user-attachments/assets/9549f019-8f8e-430f-9aff-5b8d3e4272e0" />
+<img width="1698" height="1305" alt="image" src="https://github.com/user-attachments/assets/d0eeae29-1d22-4f88-a557-5c93f68a4bdd" />
 
 
-<img width="396" height="217" alt="image" src="https://github.com/user-attachments/assets/99827a1f-c339-4946-a92d-19ac7b0c370a" />
+<img width="1711" height="1299" alt="image" src="https://github.com/user-attachments/assets/416d8a64-471a-44db-b41d-024cd1822396" />
+
+
+<img width="749" height="386" alt="image" src="https://github.com/user-attachments/assets/b953820a-3ec6-4cf6-a916-a13a5a26f4c1" />
+
 
 
 ### Profile UI
-<img width="468" height="579" alt="image" src="https://github.com/user-attachments/assets/697a04d7-f483-41cc-beb5-46e8bbe51872" />
+<img width="790" height="1026" alt="image" src="https://github.com/user-attachments/assets/35c91329-ba93-452f-ad4a-8d771c6e6bd4" />
+
 
 
 ### Favorites UI
-<img width="468" height="135" alt="image" src="https://github.com/user-attachments/assets/548d7d2f-cadc-4cbb-9556-2d8f84fb777a" />
+<img width="1694" height="698" alt="image" src="https://github.com/user-attachments/assets/772f6067-faaf-4312-8b31-bf9bf582149c" />
 
 
 ### AI Assistant Chat UI
-<img width="231" height="256" alt="image" src="https://github.com/user-attachments/assets/057031fb-0b6a-4cad-9261-cdc71b5c9f72" />
+<img width="595" height="661" alt="image" src="https://github.com/user-attachments/assets/006c1e74-6f06-4e86-a29d-f29832bb3c73" />
 
-<img width="251" height="285" alt="image" src="https://github.com/user-attachments/assets/d0014839-3c29-482a-aaf2-97ab74da82c6" />
 
-<img width="269" height="310" alt="image" src="https://github.com/user-attachments/assets/7a3df826-b1e6-46f3-8f63-5c91da223365" />
+<img width="589" height="658" alt="image" src="https://github.com/user-attachments/assets/6a60ba5a-3acf-402b-afd6-5aef7386b416" />
 
 
 ### Owner Dashboard UI
-<img width="486" height="449" alt="image" src="https://github.com/user-attachments/assets/b558baf4-b287-487c-85cc-a30e849045ac" />
+<img width="1671" height="1306" alt="image" src="https://github.com/user-attachments/assets/9664f397-1ffb-4a50-852a-afd238821188" />
 
-<img width="468" height="584" alt="image" src="https://github.com/user-attachments/assets/be008fb3-93a0-4109-a00a-c07ffa583c2e" />
+
+<img width="1321" height="1289" alt="image" src="https://github.com/user-attachments/assets/c719e7f8-a9e6-41d4-ba0c-92e05d50fce6" />
+
 
 
 ### Owner Listings UI
-<img width="403" height="317" alt="image" src="https://github.com/user-attachments/assets/1f93aa5e-94ca-498d-8700-0fce811c6284" />
-
-<img width="468" height="605" alt="image" src="https://github.com/user-attachments/assets/3148c4d8-1994-40df-866a-f2ab01ffd76c" />
-
+<img width="1568" height="1242" alt="image" src="https://github.com/user-attachments/assets/ea8ed495-d6f4-4114-9db7-8d88265fb0b8" />
 
 
 ### Owner Activity UI
-<img width="352" height="364" alt="image" src="https://github.com/user-attachments/assets/cfd14271-0d5f-4415-9b0e-6808aaf896b2" />
+<img width="1308" height="1064" alt="image" src="https://github.com/user-attachments/assets/d2c3b1f7-f0a2-400c-916e-b34bf36d9e6a" />
+
 
 
 ---
